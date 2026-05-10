@@ -1,0 +1,84 @@
+/* ─────────────────────────────────────────────────────────────
+   variables.css — Design tokens for the entire application
+   ───────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── Backgrounds ─────────────────────────────────────────── */
+  --bg-app:       #F2F0EA;
+  --bg-surface:   #FFFFFF;
+  --bg-surface-2: #F9F8F5;
+  --bg-surface-3: #F0EDE6;
+
+  /* ── Text ────────────────────────────────────────────────── */
+  --text-primary:   #1C1A16;
+  --text-secondary: #6B6558;
+  --text-muted:     #9B9388;
+
+  /* ── Borders ─────────────────────────────────────────────── */
+  --border:       rgba(0, 0, 0, 0.10);
+  --border-med:   rgba(0, 0, 0, 0.18);
+  --border-strong:rgba(0, 0, 0, 0.28);
+
+  /* ── Accent (amber — money/collections) ─────────────────── */
+  --accent:        #B87517;
+  --accent-dark:   #8A5510;
+  --accent-light:  #FEF0D6;
+  --accent-text:   #7A4A0A;
+
+  /* ── Semantic colours ────────────────────────────────────── */
+  --success:       #2A6B18;
+  --success-light: #E6F5DF;
+  --success-text:  #1D4E10;
+
+  --danger:        #A02020;
+  --danger-light:  #FCEBEB;
+  --danger-text:   #7C1818;
+
+  --warning:       #8A5E0A;
+  --warning-light: #FEF3DC;
+  --warning-text:  #6A4008;
+
+  --info:          #1A5298;
+  --info-light:    #E6F0FB;
+  --info-text:     #103A78;
+
+  --purple:        #523DB7;
+  --purple-light:  #EEEDFE;
+  --purple-text:   #3A2A8A;
+
+  /* ── Spacing scale ───────────────────────────────────────── */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 20px;
+  --s6: 24px;
+  --s8: 32px;
+
+  /* ── Typography ──────────────────────────────────────────── */
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'Helvetica Neue', sans-serif;
+  --font-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
+
+  --fs-xs:   11px;
+  --fs-sm:   13px;
+  --fs-base: 14px;
+  --fs-md:   15px;
+  --fs-lg:   17px;
+  --fs-xl:   20px;
+  --fs-2xl:  24px;
+
+  /* ── Radius ───────────────────────────────────────────────── */
+  --r-sm:   4px;
+  --r-md:   8px;
+  --r-lg:   12px;
+  --r-xl:   16px;
+  --r-full: 9999px;
+
+  /* ── Shadows ─────────────────────────────────────────────── */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.07);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.09);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,0.11);
+
+  /* ── Transitions ─────────────────────────────────────────── */
+  --t: 140ms ease;
+}

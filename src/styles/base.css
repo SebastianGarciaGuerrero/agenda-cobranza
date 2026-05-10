@@ -1,0 +1,86 @@
+/* ─────────────────────────────────────────────────────────────
+   base.css — Reset, body, typography, scrollbars
+   ───────────────────────────────────────────────────────────── */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden; /* Electron window manages scrolling */
+}
+
+body {
+  font-family: var(--font);
+  font-size: var(--fs-base);
+  color: var(--text-primary);
+  background: var(--bg-app);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  user-select: none; /* feels more like a native app */
+}
+
+/* Allow text selection in inputs and notes */
+input, textarea, .selectable {
+  user-select: text;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-med); border-radius: var(--r-full); }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* ── Links ───────────────────────────────────────────────────── */
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* ── Loading state ───────────────────────────────────────────── */
+.app-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--s4);
+  color: var(--text-muted);
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Utility ─────────────────────────────────────────────────── */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  border: 0;
+}
+
+.empty-state {
+  padding: var(--s8) var(--s6);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.7;
+}

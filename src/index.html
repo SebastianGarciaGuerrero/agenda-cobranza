@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';" />
+  <title>Agenda Cobranza</title>
+
+  <link rel="stylesheet" href="styles/variables.css" />
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="styles/layout.css" />
+  <link rel="stylesheet" href="styles/calendar.css" />
+  <link rel="stylesheet" href="styles/components.css" />
+</head>
+<body>
+  <div id="root">
+
+    <!-- ── Toolbar ─────────────────────────────────────────────────── -->
+    <header id="toolbar">
+      <div class="toolbar-brand">
+        <span class="brand-mark">H</span>
+        <span class="brand-name">Hadad Cobranza</span>
+      </div>
+
+      <nav class="breadcrumb" id="breadcrumb" aria-label="Navegación"></nav>
+
+      <div class="toolbar-actions">
+        <div class="search-box">
+          <input
+            id="global-search"
+            type="text"
+            placeholder="Buscar por ID…"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button id="search-btn" class="search-btn" title="Buscar (Enter)">→</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── Main content ────────────────────────────────────────────── -->
+    <main id="content">
+      <div id="app" class="app-loading">
+        <div class="spinner"></div>
+        <p>Cargando agenda…</p>
+      </div>
+    </main>
+
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
