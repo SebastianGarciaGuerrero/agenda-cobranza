@@ -54,20 +54,24 @@ export const CalendarView = {
   render(state) {
     const { year, month, data } = state;
     const todayStr  = today();
-    const firstDay  = firstDayOfMonth(year, month);
+    const firstDay  = firstDayOfMonth(year, month); // 0=Sun … 6=Sat
     const numDays   = daysInMonth(year, month);
 
-    // Day-of-week headers
+    // Day-of-week headers (Mon–Fri only)
     const dowHeaders = DIAS_SEMANA
       .map(d => `<div class="cal-dow">${d}</div>`)
       .join('');
 
-    // Empty cells before the 1st
-    const emptyCells = Array(firstDay).fill('<div class="cal-cell empty"></div>').join('');
+    // Empty cells before the 1st workday (week starts on Monday)
+    // If month starts on Sat(6) or Sun(0) the first rendered day is Monday → offset 0
+    const startOffset = (firstDay === 0 || firstDay === 6) ? 0 : firstDay - 1;
+    const emptyCells = Array(startOffset).fill('<div class="cal-cell empty"></div>').join('');
 
-    // Day cells
+    // Day cells — skip Saturdays (6) and Sundays (0)
     const dayCells = Array.from({ length: numDays }, (_, i) => {
       const day = i + 1;
+      const dow = new Date(year, month, day).getDay();
+      if (dow === 0 || dow === 6) return '';
       const key = buildKey(year, month, day);
       const ids = data.agenda[key] || [];
       const isToday = key === todayStr;

@@ -17,6 +17,7 @@ function createWindow() {
     minWidth: 900,
     minHeight: 620,
     title: 'Agenda Cobranza — Hadad & Asociados',
+    icon: path.join(__dirname, 'assets', 'icon.ico'),
     backgroundColor: '#F5F3EE',
     show: false, // show after ready-to-show for a cleaner launch
     webPreferences: {

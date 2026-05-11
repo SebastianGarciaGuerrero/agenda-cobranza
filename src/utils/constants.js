@@ -31,4 +31,4 @@ export const MESES = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
 ];
 
-export const DIAS_SEMANA = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+export const DIAS_SEMANA = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'];
