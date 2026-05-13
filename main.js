@@ -1,6 +1,8 @@
 const { app, BrowserWindow, ipcMain, dialog, Menu, shell } = require('electron');
 const path = require('path');
 const fs   = require('fs');
+const https = require('https');
+const { exec } = require('child_process');
 
 // ─── Constants ─────────────────────────────────────────────────────────────
 const IS_DEV   = process.argv.includes('--dev');
@@ -8,6 +10,63 @@ const DATA_DIR  = app.getPath('userData');
 const DATA_FILE = path.join(DATA_DIR, 'cobranza-data.json');
 
 let mainWindow;
+
+// ─── Auto-updater ────────────────────────────────────────────────────────────
+const REPO = 'SebastianGarciaGuerrero/agenda-cobranza';
+
+function checkForUpdates() {
+  // Leer el SHA del build actual
+  let currentSha;
+  try {
+    const versionFile = path.join(__dirname, 'assets', 'version.json');
+    currentSha = JSON.parse(fs.readFileSync(versionFile, 'utf-8')).sha;
+  } catch (e) {
+    return; // no hay version.json (modo dev sin build), ignorar
+  }
+
+  // Consultar el último commit en GitHub
+  const options = {
+    hostname: 'api.github.com',
+    path: `/repos/${REPO}/commits?per_page=1`,
+    headers: { 'User-Agent': 'AgendaCobranza/1.0' },
+  };
+
+  https.get(options, res => {
+    let body = '';
+    res.on('data', chunk => body += chunk);
+    res.on('end', () => {
+      try {
+        const [latest] = JSON.parse(body);
+        if (latest?.sha && latest.sha !== currentSha) {
+          showUpdateDialog();
+        }
+      } catch (e) { /* respuesta inesperada, ignorar */ }
+    });
+  }).on('error', () => { /* sin internet, ignorar silenciosamente */ });
+}
+
+function showUpdateDialog() {
+  dialog.showMessageBox(mainWindow, {
+    type: 'info',
+    title: 'Actualización disponible',
+    message: '¡Hay una nueva versión de Agenda Cobranza!',
+    detail: 'Se cerrará la app y comenzará la actualización. Tardará menos de un minuto.',
+    buttons: ['Actualizar ahora', 'Más tarde'],
+    defaultId: 0,
+    cancelId: 1,
+    icon: path.join(__dirname, 'assets', 'icon.ico'),
+  }).then(({ response }) => {
+    if (response === 0) {
+      // Ruta al bat: 2 niveles arriba desde la carpeta del .exe
+      const batPath = IS_DEV
+        ? path.join(__dirname, 'actualizar.bat')
+        : path.join(path.dirname(process.execPath), '..', '..', 'actualizar.bat');
+
+      exec(`start "" "${batPath}"`);
+      app.quit();
+    }
+  });
+}
 
 // ─── Window ─────────────────────────────────────────────────────────────────
 function createWindow() {
@@ -29,7 +88,11 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, 'src', 'index.html'));
 
-  mainWindow.once('ready-to-show', () => mainWindow.show());
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+    // Chequear actualizaciones 4 segundos después de arrancar
+    setTimeout(checkForUpdates, 4000);
+  });
 
   if (IS_DEV) {
     mainWindow.webContents.openDevTools({ mode: 'detach' });

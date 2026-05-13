@@ -6,6 +6,7 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
+    "prebuild:win": "node scripts/write-version.js",
     "build:win": "electron-packager . AgendaCobranza --platform=win32 --arch=x64 --out=dist --overwrite --icon=assets/icon.ico",
     "build:mac": "electron-packager . AgendaCobranza --platform=darwin --arch=x64 --out=dist --overwrite"
   },
