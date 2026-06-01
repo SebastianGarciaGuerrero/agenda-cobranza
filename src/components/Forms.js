@@ -23,6 +23,10 @@ export function renderAddDebtorForm(form) {
           <input id="f-new-nombre" type="text" value="${esc(form.newNombre)}" placeholder="Nombre del deudor" />
         </div>
       </div>
+      <div class="form-field">
+        <label class="form-label">Nota / recordatorio del día (opcional)</label>
+        <textarea id="f-new-nota" rows="2" placeholder="Ej: Llamar para recordar promesa de pago, enviar email de seguimiento…">${esc(form.newNota)}</textarea>
+      </div>
       <div class="form-actions">
         <button class="btn btn-primary" id="btn-confirm-add-debtor">Agregar</button>
         <button class="btn btn-secondary" id="btn-cancel-add-debtor">Cancelar</button>

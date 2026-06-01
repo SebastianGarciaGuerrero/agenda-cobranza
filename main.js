@@ -152,7 +152,7 @@ ipcMain.handle('storage:read', () => {
   } catch (err) {
     console.error('[storage:read]', err);
   }
-  return { debtors: {}, agenda: {} };
+  return { debtors: {}, agenda: {}, notas: {} };
 });
 
 ipcMain.handle('storage:write', (_, data) => {

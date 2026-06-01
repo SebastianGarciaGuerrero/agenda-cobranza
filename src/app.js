@@ -15,7 +15,9 @@ import { exportCSV } from './utils/storage.js';
 // ── Boot ─────────────────────────────────────────────────────────────────────
 async function boot() {
   // 1. Load persisted data
-  const data = await loadData();
+  const raw  = await loadData();
+  // Backward-compat: ensure notas exists for users with older data
+  const data = { notas: {}, ...raw };
   setData(data);
 
   // 2. Subscribe store → re-render on every state change

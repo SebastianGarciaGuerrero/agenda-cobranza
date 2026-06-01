@@ -14,7 +14,7 @@ export async function loadData() {
   }
   // Browser fallback (development only)
   const stored = localStorage.getItem('cobranza-data');
-  return stored ? JSON.parse(stored) : { debtors: {}, agenda: {} };
+  return stored ? JSON.parse(stored) : { debtors: {}, agenda: {}, notas: {} };
 }
 
 /** Persist all app data. */

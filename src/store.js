@@ -13,6 +13,7 @@ function makeForm() {
     // Add-debtor-to-day form
     newId:     '',
     newNombre: '',
+    newNota:   '',
     // Gestión form
     gTipo:        'llamada_si',
     gFecha:       today(),

@@ -17,6 +17,8 @@ export const DayView = {
     const { selectedDay, data, ui, form } = state;
     const ids = data.agenda[selectedDay] || [];
 
+    const notas = data.notas?.[selectedDay] || {};
+
     let debtorList;
     if (!ids.length) {
       debtorList = `<p class="empty-state">No hay deudores agendados para este día.<br>Usá el botón para agregar un ID.</p>`;
@@ -24,17 +26,27 @@ export const DayView = {
       debtorList = `<div class="debtor-list">` + ids.map(id => {
         const deb  = data.debtors[id] || {};
         const tipo = lastTipo(deb);
+        const nota = notas[id] || '';
         return `
           <div class="debtor-item" data-id="${esc(id)}">
-            <div class="debtor-item-left">
-              <span class="debtor-item-id">ID ${esc(id)}</span>
-              <button class="btn btn-secondary btn-sm btn-copy-id" data-id="${esc(id)}" title="Copiar ID" style="font-size:11px;padding:1px 7px;margin-left:6px">Copiar</button>
-              <span class="debtor-item-name">${esc(deb.nombre || 'Sin nombre')}</span>
+            <div class="debtor-item-row">
+              <div class="debtor-item-left">
+                <span class="debtor-item-id">ID ${esc(id)}</span>
+                <button class="btn btn-secondary btn-sm btn-copy-id" data-id="${esc(id)}" title="Copiar ID" style="font-size:11px;padding:1px 7px;margin-left:6px">Copiar</button>
+                <span class="debtor-item-name">${esc(deb.nombre || 'Sin nombre')}</span>
+              </div>
+              <div class="debtor-item-right">
+                ${deb.saldo != null ? `<span class="debtor-item-saldo">${formatMoney(deb.saldo)}</span>` : ''}
+                ${badge(tipo)}
+                <button class="btn-icon btn-rm-debtor" data-id="${esc(id)}" title="Quitar de este día" style="font-size:14px">×</button>
+              </div>
             </div>
-            <div class="debtor-item-right">
-              ${deb.saldo != null ? `<span class="debtor-item-saldo">${formatMoney(deb.saldo)}</span>` : ''}
-              ${badge(tipo)}
-              <button class="btn-icon btn-rm-debtor" data-id="${esc(id)}" title="Quitar de este día" style="font-size:14px">×</button>
+            <div class="debtor-item-nota-row" data-id="${esc(id)}">
+              ${nota
+                ? `<span class="nota-icon">📝</span><span class="nota-text">${esc(nota)}</span>`
+                : `<span class="nota-empty">+ Agregar nota</span>`
+              }
+              <button class="btn-edit-nota" data-id="${esc(id)}" title="Editar nota">✏</button>
             </div>
           </div>`;
       }).join('') + `</div>`;
@@ -119,6 +131,7 @@ export const DayView = {
     document.getElementById('btn-confirm-add-debtor')?.addEventListener('click', async () => {
       const id     = document.getElementById('f-new-id')?.value?.trim();
       const nombre = document.getElementById('f-new-nombre')?.value?.trim() || '';
+      const nota   = document.getElementById('f-new-nota')?.value?.trim()   || '';
       if (!id) {
         document.getElementById('f-new-id')?.focus();
         return;
@@ -139,9 +152,54 @@ export const DayView = {
         data.debtors[id].nombre = nombre;
       }
 
+      // Save nota for this day
+      if (nota) {
+        if (!data.notas) data.notas = {};
+        if (!data.notas[selectedDay]) data.notas[selectedDay] = {};
+        data.notas[selectedDay][id] = nota;
+      }
+
       setData({ ...data });
       await saveData(getState().data);
       setUI({ showAddDebtor: false });
+    });
+
+    // Inline nota edit — click ✏ button
+    document.querySelectorAll('.btn-edit-nota').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const id      = btn.dataset.id;
+        const row     = document.querySelector(`.debtor-item-nota-row[data-id="${id}"]`);
+        const current = row.querySelector('.nota-text')?.textContent || '';
+
+        row.innerHTML = `
+          <textarea class="nota-edit-input" rows="2">${esc(current)}</textarea>
+          <div class="nota-edit-actions">
+            <button class="btn btn-primary btn-sm btn-save-nota" data-id="${esc(id)}">Guardar</button>
+            <button class="btn btn-secondary btn-sm btn-cancel-nota">Cancelar</button>
+          </div>`;
+        row.querySelector('.nota-edit-input').focus();
+
+        // Save
+        row.querySelector('.btn-save-nota').addEventListener('click', async () => {
+          const value = row.querySelector('.nota-edit-input').value.trim();
+          const { selectedDay, data } = getState();
+          if (!data.notas) data.notas = {};
+          if (!data.notas[selectedDay]) data.notas[selectedDay] = {};
+          if (value) {
+            data.notas[selectedDay][id] = value;
+          } else {
+            delete data.notas[selectedDay][id];
+          }
+          setData({ ...data });
+          await saveData(getState().data);
+        });
+
+        // Cancel — re-render to restore original state
+        row.querySelector('.btn-cancel-nota').addEventListener('click', () => {
+          setData({ ...getState().data });
+        });
+      });
     });
   },
 };
