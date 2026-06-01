@@ -187,8 +187,17 @@
   display: flex;
   align-items: flex-start;
   gap: 6px;
-  padding-top: 2px;
+  padding-top: 4px;
   border-top: 1px solid var(--border);
+  cursor: text;
+  border-radius: var(--r-sm);
+  padding: 4px 6px;
+  margin: 0 -6px -2px;
+  transition: background var(--t);
+}
+
+.debtor-item-nota-row:hover {
+  background: var(--bg-surface-2);
 }
 
 .nota-icon {
@@ -210,22 +219,6 @@
   color: var(--text-muted);
   flex: 1;
   opacity: 0.6;
-}
-
-.btn-edit-nota {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 11px;
-  color: var(--text-muted);
-  padding: 0 2px;
-  flex-shrink: 0;
-  opacity: 0;
-  transition: opacity var(--t);
-}
-
-.debtor-item:hover .btn-edit-nota {
-  opacity: 1;
 }
 
 .nota-edit-input {

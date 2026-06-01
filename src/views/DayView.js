@@ -3,9 +3,9 @@
  */
 
 import { navigate } from '../router.js';
-import { getState, setUI, setForm, setData } from '../store.js';
+import { getState, setUI, setData } from '../store.js';
 import { saveData } from '../utils/storage.js';
-import { formatLong, today } from '../utils/date.js';
+import { formatLong } from '../utils/date.js';
 import { formatMoney, esc } from '../utils/format.js';
 import { badge, lastTipo } from '../components/Badge.js';
 import { renderAddDebtorForm } from '../components/Forms.js';
@@ -15,8 +15,7 @@ export const DayView = {
 
   render(state) {
     const { selectedDay, data, ui, form } = state;
-    const ids = data.agenda[selectedDay] || [];
-
+    const ids   = data.agenda[selectedDay] || [];
     const notas = data.notas?.[selectedDay] || {};
 
     let debtorList;
@@ -41,12 +40,11 @@ export const DayView = {
                 <button class="btn-icon btn-rm-debtor" data-id="${esc(id)}" title="Quitar de este día" style="font-size:14px">×</button>
               </div>
             </div>
-            <div class="debtor-item-nota-row" data-id="${esc(id)}">
+            <div class="debtor-item-nota-row" data-id="${esc(id)}" title="Clic para editar nota">
               ${nota
                 ? `<span class="nota-icon">📝</span><span class="nota-text">${esc(nota)}</span>`
-                : `<span class="nota-empty">+ Agregar nota</span>`
+                : `<span class="nota-empty">+ Agregar nota para este día</span>`
               }
-              <button class="btn-edit-nota" data-id="${esc(id)}" title="Editar nota">✏</button>
             </div>
           </div>`;
       }).join('') + `</div>`;
@@ -76,12 +74,12 @@ export const DayView = {
   bindEvents() {
     const state = getState();
 
-    // Back to calendar
+    // ── Volver al calendario ──────────────────────────────────────────────────
     document.getElementById('btn-back-calendar')?.addEventListener('click', () => {
       navigate('calendar');
     });
 
-    // Copy ID buttons
+    // ── Copiar ID ─────────────────────────────────────────────────────────────
     document.querySelectorAll('.btn-copy-id').forEach(btn => {
       btn.addEventListener('click', e => {
         e.stopPropagation();
@@ -92,10 +90,12 @@ export const DayView = {
       });
     });
 
-    // Click debtor → go to debtor detail
+    // ── Click en el item → ir al deudor (excepto nota y botones) ─────────────
     document.querySelectorAll('.debtor-item[data-id]').forEach(el => {
       el.addEventListener('click', e => {
-        if (e.target.closest('.btn-rm-debtor')) return;
+        if (e.target.closest('.btn-rm-debtor'))        return;
+        if (e.target.closest('.btn-copy-id'))          return;
+        if (e.target.closest('.debtor-item-nota-row')) return; // nota maneja su propio click
         navigate('debtor', {
           selectedDebtorId: el.dataset.id,
           selectedDay: state.selectedDay,
@@ -103,31 +103,94 @@ export const DayView = {
       });
     });
 
-    // Remove debtor from this day
+    // ── Quitar deudor del día (y su nota) ────────────────────────────────────
     document.querySelectorAll('.btn-rm-debtor').forEach(btn => {
       btn.addEventListener('click', async e => {
         e.stopPropagation();
         const id   = btn.dataset.id;
         const day  = getState().selectedDay;
         const data = getState().data;
+
         data.agenda[day] = (data.agenda[day] || []).filter(x => x !== id);
+
+        // Borrar la nota de este día también
+        if (data.notas?.[day]?.[id]) {
+          delete data.notas[day][id];
+        }
+
         setData({ ...data });
         await saveData(getState().data);
       });
     });
 
-    // Show add-debtor form
-    document.getElementById('btn-show-add-debtor')?.addEventListener('click', () => {
-      setUI({ showAddDebtor: true });
-      // re-render manually since setUI notifies store listener
+    // ── Nota: click en la fila → edición inline ───────────────────────────────
+    document.querySelectorAll('.debtor-item-nota-row').forEach(row => {
+      row.addEventListener('click', e => {
+        e.stopPropagation(); // no abrir el deudor
+
+        // Si ya está en modo edición, no hacer nada
+        if (row.querySelector('.nota-edit-input')) return;
+
+        const id      = row.dataset.id;
+        const current = row.querySelector('.nota-text')?.textContent || '';
+
+        row.innerHTML = `
+          <textarea class="nota-edit-input" rows="2"
+            placeholder="Escribí tu recordatorio para este día…">${esc(current)}</textarea>
+          <div class="nota-edit-actions">
+            <button class="btn btn-primary btn-sm btn-save-nota">Guardar</button>
+            <button class="btn btn-secondary btn-sm btn-cancel-nota">Cancelar</button>
+          </div>`;
+
+        const input = row.querySelector('.nota-edit-input');
+        input.focus();
+        // Mover cursor al final
+        input.setSelectionRange(input.value.length, input.value.length);
+
+        // Guardar con Enter (sin Shift)
+        input.addEventListener('keydown', e => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            row.querySelector('.btn-save-nota').click();
+          }
+          if (e.key === 'Escape') {
+            row.querySelector('.btn-cancel-nota').click();
+          }
+        });
+
+        // Guardar
+        row.querySelector('.btn-save-nota').addEventListener('click', async () => {
+          const value = input.value.trim();
+          const { selectedDay, data } = getState();
+          if (!data.notas)             data.notas = {};
+          if (!data.notas[selectedDay]) data.notas[selectedDay] = {};
+          if (value) {
+            data.notas[selectedDay][id] = value;
+          } else {
+            delete data.notas[selectedDay][id];
+          }
+          setData({ ...data });
+          await saveData(getState().data);
+        });
+
+        // Cancelar → re-render para restaurar
+        row.querySelector('.btn-cancel-nota').addEventListener('click', () => {
+          setData({ ...getState().data });
+        });
+      });
     });
 
-    // Cancel add-debtor
+    // ── Mostrar form agregar deudor ───────────────────────────────────────────
+    document.getElementById('btn-show-add-debtor')?.addEventListener('click', () => {
+      setUI({ showAddDebtor: true });
+    });
+
+    // ── Cancelar agregar deudor ───────────────────────────────────────────────
     document.getElementById('btn-cancel-add-debtor')?.addEventListener('click', () => {
       setUI({ showAddDebtor: false });
     });
 
-    // Confirm add-debtor
+    // ── Confirmar agregar deudor ──────────────────────────────────────────────
     document.getElementById('btn-confirm-add-debtor')?.addEventListener('click', async () => {
       const id     = document.getElementById('f-new-id')?.value?.trim();
       const nombre = document.getElementById('f-new-nombre')?.value?.trim() || '';
@@ -139,22 +202,22 @@ export const DayView = {
 
       const { selectedDay, data } = getState();
 
-      // Add to agenda
+      // Agregar a la agenda
       if (!data.agenda[selectedDay]) data.agenda[selectedDay] = [];
       if (!data.agenda[selectedDay].includes(id)) {
         data.agenda[selectedDay].push(id);
       }
 
-      // Create debtor stub if not exists
+      // Crear stub del deudor si no existe
       if (!data.debtors[id]) {
         data.debtors[id] = { id, nombre, gestiones: [] };
       } else if (nombre && !data.debtors[id].nombre) {
         data.debtors[id].nombre = nombre;
       }
 
-      // Save nota for this day
+      // Guardar nota del día
       if (nota) {
-        if (!data.notas) data.notas = {};
+        if (!data.notas)              data.notas = {};
         if (!data.notas[selectedDay]) data.notas[selectedDay] = {};
         data.notas[selectedDay][id] = nota;
       }
@@ -162,44 +225,6 @@ export const DayView = {
       setData({ ...data });
       await saveData(getState().data);
       setUI({ showAddDebtor: false });
-    });
-
-    // Inline nota edit — click ✏ button
-    document.querySelectorAll('.btn-edit-nota').forEach(btn => {
-      btn.addEventListener('click', e => {
-        e.stopPropagation();
-        const id      = btn.dataset.id;
-        const row     = document.querySelector(`.debtor-item-nota-row[data-id="${id}"]`);
-        const current = row.querySelector('.nota-text')?.textContent || '';
-
-        row.innerHTML = `
-          <textarea class="nota-edit-input" rows="2">${esc(current)}</textarea>
-          <div class="nota-edit-actions">
-            <button class="btn btn-primary btn-sm btn-save-nota" data-id="${esc(id)}">Guardar</button>
-            <button class="btn btn-secondary btn-sm btn-cancel-nota">Cancelar</button>
-          </div>`;
-        row.querySelector('.nota-edit-input').focus();
-
-        // Save
-        row.querySelector('.btn-save-nota').addEventListener('click', async () => {
-          const value = row.querySelector('.nota-edit-input').value.trim();
-          const { selectedDay, data } = getState();
-          if (!data.notas) data.notas = {};
-          if (!data.notas[selectedDay]) data.notas[selectedDay] = {};
-          if (value) {
-            data.notas[selectedDay][id] = value;
-          } else {
-            delete data.notas[selectedDay][id];
-          }
-          setData({ ...data });
-          await saveData(getState().data);
-        });
-
-        // Cancel — re-render to restore original state
-        row.querySelector('.btn-cancel-nota').addEventListener('click', () => {
-          setData({ ...getState().data });
-        });
-      });
     });
   },
 };
