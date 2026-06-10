@@ -1,5 +1,5 @@
 /* ─────────────────────────────────────────────────────────────
-   calendar.css — Month calendar grid
+   calendar.css — Month calendar grid (Mon–Fri)
    ───────────────────────────────────────────────────────────── */
 
 /* ── Nav bar above the grid ─────────────────────────────────── */
@@ -7,18 +7,21 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--s5);
+  margin-bottom: var(--s4);
+  padding: 0 var(--s1);
 }
 
 .cal-month-label {
   font-size: var(--fs-xl);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-primary);
+  text-transform: capitalize;
 }
 
 .cal-nav-btns {
   display: flex;
   gap: var(--s2);
+  align-items: center;
 }
 
 /* ── Grid ───────────────────────────────────────────────────── */
@@ -28,7 +31,7 @@
   box-sizing: border-box;
   grid-template-columns: repeat(5, 1fr);
   grid-auto-rows: minmax(0, 1fr);
-  gap: 4px;
+  gap: 5px;
   height: calc(100vh - 140px);
 }
 
@@ -36,28 +39,29 @@
 .cal-dow {
   text-align: center;
   font-size: var(--fs-xs);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-muted);
   padding: var(--s2) 0 var(--s3);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.07em;
 }
 
 /* ── Day cells ──────────────────────────────────────────────── */
 .cal-cell {
   min-height: 0;
-  padding: 6px;
+  padding: 7px;
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   cursor: pointer;
-  transition: background var(--t), border-color var(--t);
+  transition: background var(--t), border-color var(--t), box-shadow var(--t);
   overflow: hidden;
 }
 
 .cal-cell:hover {
   background: var(--bg-surface-2);
-  border-color: var(--border-med);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
 }
 
 .cal-cell.empty {
@@ -69,28 +73,55 @@
 .cal-cell.empty:hover {
   background: transparent;
   border-color: transparent;
+  box-shadow: none;
 }
 
 .cal-cell.today {
   border: 2px solid var(--accent);
+  background: var(--accent-light);
 }
 
-.cal-cell.has-items {
-  background: var(--bg-surface-2);
+.cal-cell.today:hover {
+  background: var(--accent-light);
 }
 
-/* ── Day number ─────────────────────────────────────────────── */
+.cal-cell.has-items:not(.today) {
+  background: var(--bg-surface);
+}
+
+/* ── Day number + count ─────────────────────────────────────── */
+.cal-day-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
 .cal-day-num {
   font-size: var(--fs-sm);
   color: var(--text-secondary);
-  font-weight: 400;
-  margin-bottom: 4px;
+  font-weight: 500;
   line-height: 1;
 }
 
 .cal-cell.today .cal-day-num {
   color: var(--accent);
-  font-weight: 600;
+  font-weight: 700;
+}
+
+.cal-day-count {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent-text);
+  background: var(--accent-light);
+  border-radius: var(--r-full);
+  padding: 1px 7px;
+  line-height: 1.5;
+}
+
+.cal-cell.today .cal-day-count {
+  background: var(--accent);
+  color: #fff;
 }
 
 /* ── Debtor pills inside cells ──────────────────────────────── */
@@ -98,12 +129,13 @@
   display: block;
   font-size: 10px;
   border-radius: var(--r-sm);
-  padding: 2px 5px;
+  padding: 2px 6px;
   margin-bottom: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.4;
+  font-weight: 500;
 }
 
 .cal-pill.default  { background: var(--bg-surface-3); color: var(--text-secondary); border: 1px solid var(--border); }
@@ -115,5 +147,6 @@
 .cal-pill-more {
   font-size: 10px;
   color: var(--text-muted);
-  padding: 1px 5px;
+  padding: 1px 6px;
+  font-weight: 600;
 }

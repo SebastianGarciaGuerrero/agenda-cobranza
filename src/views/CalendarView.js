@@ -1,5 +1,5 @@
 /**
- * CalendarView.js — Month calendar grid.
+ * CalendarView.js — Month calendar grid (Mon–Fri only).
  */
 
 import { navigate } from '../router.js';
@@ -10,42 +10,15 @@ import { toCSV } from '../utils/format.js';
 import { exportCSV } from '../utils/storage.js';
 import { lastTipo } from '../components/Badge.js';
 
-// ── Pill CSS class based on last gestión type ────────────────────────────────
-function pillClass(tipo) {
+// ── Pill CSS class based on debtor state ─────────────────────────────────────
+function pillClass(deb) {
+  if (deb?.pagado) return 'cal-pill pagado';
+  const tipo = lastTipo(deb);
   if (tipo === 'promesa') return 'cal-pill promesa';
   if (tipo === 'pago' || tipo === 'abono') return 'cal-pill pagado';
   if (tipo === 'caido' || tipo === 'negativa') return 'cal-pill caido';
   if (tipo === 'acuerdo') return 'cal-pill acuerdo';
   return 'cal-pill default';
-}
-
-// ── Mini stats ───────────────────────────────────────────────────────────────
-function renderStats(data) {
-  const debtors  = Object.values(data.debtors);
-  const total    = debtors.length;
-  const conProm  = debtors.filter(d => lastTipo(d) === 'promesa').length;
-  const pagados  = debtors.filter(d => ['pago','abono'].includes(lastTipo(d))).length;
-  const caidos   = debtors.filter(d => ['caido','negativa'].includes(lastTipo(d))).length;
-
-  return `
-    <div class="metrics-row">
-      <div class="metric-card">
-        <div class="metric-label">Total deudores</div>
-        <div class="metric-value">${total}</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Con promesa</div>
-        <div class="metric-value accent">${conProm}</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Pagaron</div>
-        <div class="metric-value success">${pagados}</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Caídos / Negativa</div>
-        <div class="metric-value danger">${caidos}</div>
-      </div>
-    </div>`;
 }
 
 // ── Render ───────────────────────────────────────────────────────────────────
@@ -56,6 +29,8 @@ export const CalendarView = {
     const todayStr  = today();
     const firstDay  = firstDayOfMonth(year, month); // 0=Sun … 6=Sat
     const numDays   = daysInMonth(year, month);
+    const isCurrentMonth = Number(todayStr.slice(0, 4)) === year &&
+                           Number(todayStr.slice(5, 7)) - 1 === month;
 
     // Day-of-week headers (Mon–Fri only)
     const dowHeaders = DIAS_SEMANA
@@ -78,9 +53,8 @@ export const CalendarView = {
       const hasPills = ids.length > 0;
 
       const pills = ids.slice(0, 4).map(id => {
-        const deb  = data.debtors[id];
-        const tipo = lastTipo(deb);
-        return `<div class="${pillClass(tipo)}">${id}</div>`;
+        const deb = data.debtors[id];
+        return `<div class="${pillClass(deb)}">${id}</div>`;
       }).join('');
 
       const more = ids.length > 4
@@ -90,7 +64,10 @@ export const CalendarView = {
       return `
         <div class="cal-cell${isToday ? ' today' : ''}${hasPills ? ' has-items' : ''}"
              data-day="${key}">
-          <div class="cal-day-num">${day}</div>
+          <div class="cal-day-head">
+            <span class="cal-day-num">${day}</span>
+            ${hasPills ? `<span class="cal-day-count">${ids.length}</span>` : ''}
+          </div>
           ${pills}${more}
         </div>`;
     }).join('');
@@ -100,8 +77,9 @@ export const CalendarView = {
 
       <div class="cal-nav">
         <div class="cal-nav-btns">
-          <button class="nav-btn" id="btn-prev-month">&#8592;</button>
-          <button class="nav-btn" id="btn-next-month">&#8594;</button>
+          <button class="nav-btn" id="btn-prev-month" title="Mes anterior">←</button>
+          <button class="nav-btn" id="btn-next-month" title="Mes siguiente">→</button>
+          ${!isCurrentMonth ? `<button class="btn btn-secondary btn-sm" id="btn-cal-today">Mes actual</button>` : ''}
         </div>
         <span class="cal-month-label">${MESES[month]} ${year}</span>
         <button class="btn btn-secondary btn-sm" id="btn-export-csv">Exportar CSV</button>
@@ -115,7 +93,6 @@ export const CalendarView = {
   },
 
   bindEvents() {
-    const state = getState();
 
     document.getElementById('btn-prev-month')?.addEventListener('click', () => {
       let { year, month } = getState();
@@ -129,6 +106,11 @@ export const CalendarView = {
       month++;
       if (month > 11) { month = 0; year++; }
       setState({ year, month });
+    });
+
+    document.getElementById('btn-cal-today')?.addEventListener('click', () => {
+      const now = new Date();
+      setState({ year: now.getFullYear(), month: now.getMonth() });
     });
 
     document.querySelectorAll('.cal-cell[data-day]').forEach(el => {

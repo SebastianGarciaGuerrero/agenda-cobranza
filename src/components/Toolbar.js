@@ -1,9 +1,9 @@
 /**
- * Toolbar.js — Breadcrumb renderer and global search binding.
+ * Toolbar.js — Breadcrumb renderer, "Hoy" button, and global search binding.
  */
 
 import { navigate } from '../router.js';
-import { formatShort } from '../utils/date.js';
+import { formatShort, today } from '../utils/date.js';
 import { esc } from '../utils/format.js';
 
 /** Renders the breadcrumb nav based on current state. */
@@ -17,32 +17,34 @@ export function renderBreadcrumb(state) {
   }
 
   const parts = [];
+  parts.push(`<span class="bc-item clickable" data-nav="calendar">Calendario</span>`);
+  parts.push(`<span class="bc-sep">›</span>`);
 
   if (state.view === 'day') {
-    parts.push(`<span class="bc-item clickable" data-nav="calendar">Calendario</span>`);
-    parts.push(`<span class="bc-sep">›</span>`);
     parts.push(`<span class="bc-item">${formatShort(state.selectedDay)}</span>`);
   }
 
-  if (state.view === 'debtor') {
-    parts.push(`<span class="bc-item clickable" data-nav="calendar">Calendario</span>`);
-    if (state.selectedDay) {
-      parts.push(`<span class="bc-sep">›</span>`);
-      parts.push(`<span class="bc-item clickable" data-nav="day">${formatShort(state.selectedDay)}</span>`);
-    }
-    parts.push(`<span class="bc-sep">›</span>`);
-    parts.push(`<span class="bc-item">ID ${esc(state.selectedDebtorId)}</span>`);
+  if (state.view === 'search') {
+    parts.push(`<span class="bc-item">Búsqueda: ID ${esc(state.searchId)}</span>`);
   }
 
   el.innerHTML = parts.join('');
-
-  // Bind breadcrumb navigation clicks
   el.querySelector('[data-nav="calendar"]')?.addEventListener('click', () => navigate('calendar'));
-  el.querySelector('[data-nav="day"]')?.addEventListener('click', () => navigate('day'));
 }
 
-/** Binds the global search input and button (called once on startup). */
+/** Binds the "Hoy" button and global search (called once on startup). */
 export function bindToolbar() {
+  // Botón Hoy → día actual desde cualquier vista
+  document.getElementById('btn-today')?.addEventListener('click', () => {
+    const t = today();
+    navigate('day', {
+      selectedDay: t,
+      year:  Number(t.slice(0, 4)),
+      month: Number(t.slice(5, 7)) - 1,
+    });
+  });
+
+  // Búsqueda por ID → vista de días agendados
   const input = document.getElementById('global-search');
   const btn   = document.getElementById('search-btn');
 
@@ -50,9 +52,14 @@ export function bindToolbar() {
     const id = input?.value?.trim();
     if (!id) return;
     input.value = '';
-    navigate('debtor', { selectedDebtorId: id, selectedDay: null });
+    input.blur();
+    navigate('search', { searchId: id });
   };
 
-  input?.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+  input?.addEventListener('keydown', e => {
+    e.stopPropagation(); // que Esc no navegue mientras se escribe
+    if (e.key === 'Enter')  doSearch();
+    if (e.key === 'Escape') input.blur();
+  });
   btn?.addEventListener('click', doSearch);
 }

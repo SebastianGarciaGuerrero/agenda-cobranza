@@ -7,7 +7,7 @@
 
 import { loadData, saveData } from './utils/storage.js';
 import { setData, subscribe, getState } from './store.js';
-import { renderCurrentView } from './router.js';
+import { renderCurrentView, navigate } from './router.js';
 import { bindToolbar } from './components/Toolbar.js';
 import { toCSV } from './utils/format.js';
 import { exportCSV } from './utils/storage.js';
@@ -39,6 +39,14 @@ function bindGlobalShortcuts() {
     if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
       e.preventDefault();
       document.getElementById('global-search')?.focus();
+    }
+
+    // Esc → volver al calendario (salvo que se esté escribiendo en un campo)
+    if (e.key === 'Escape') {
+      const tag = e.target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      const { view } = getState();
+      if (view !== 'calendar') navigate('calendar');
     }
   });
 }

@@ -5,8 +5,6 @@
  * Views should read state via getState() and update via setState/setUI/setForm.
  */
 
-import { today } from './utils/date.js';
-
 // ── Initial form state factory ───────────────────────────────────────────────
 function makeForm() {
   return {
@@ -14,35 +12,20 @@ function makeForm() {
     newId:     '',
     newNombre: '',
     newNota:   '',
-    // Gestión form
-    gTipo:        'llamada_si',
-    gFecha:       today(),
-    gNota:        '',
-    gPromesaFecha:'',
-    gPromesaMonto:'',
-    gPago:        '',
-    // Edit-debtor form
-    eNombre: '',
-    eRut:    '',
-    eDeuda:  '',
-    eSaldo:  '',
-    eEstado: 'activo',
   };
 }
 
 // ── State object ─────────────────────────────────────────────────────────────
 let state = {
-  view: 'calendar',          // 'calendar' | 'day' | 'debtor'
+  view: 'calendar',          // 'calendar' | 'day' | 'search'
   year:  new Date().getFullYear(),
   month: new Date().getMonth(),
-  selectedDay:      null,    // 'YYYY-MM-DD' | null
-  selectedDebtorId: null,    // string | null
-  data: { debtors: {}, agenda: {} },
+  selectedDay: null,         // 'YYYY-MM-DD' | null
+  searchId:    null,         // string | null — ID being searched
+  data: { debtors: {}, agenda: {}, notas: {} },
 
   ui: {
-    showAddDebtor:   false,
-    showAddGestion:  false,
-    showEditDebtor:  false,
+    showAddDebtor: false,
   },
 
   form: makeForm(),
@@ -81,7 +64,7 @@ export function setData(data) {
 export function resetUI() {
   state = {
     ...state,
-    ui:   { showAddDebtor: false, showAddGestion: false, showEditDebtor: false },
+    ui:   { showAddDebtor: false },
     form: makeForm(),
   };
 }

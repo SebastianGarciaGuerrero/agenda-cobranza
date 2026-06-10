@@ -4,20 +4,24 @@
 
 import { getState, setState, resetUI } from './store.js';
 import { CalendarView } from './views/CalendarView.js';
-import { DayView       } from './views/DayView.js';
-import { DebtorView    } from './views/DebtorView.js';
+import { DayView      } from './views/DayView.js';
+import { SearchView   } from './views/SearchView.js';
 import { renderBreadcrumb } from './components/Toolbar.js';
 
 const VIEWS = {
   calendar: CalendarView,
   day:      DayView,
-  debtor:   DebtorView,
+  search:   SearchView,
 };
+
+// Tracks the last view+params so we only reset scroll on real navigation,
+// not on data updates (e.g. saving a nota at the bottom of a long list).
+let lastViewKey = '';
 
 /**
  * Navigate to a view, optionally updating state params.
- * @param {'calendar'|'day'|'debtor'} view
- * @param {object} [params]  — e.g. { selectedDay, selectedDebtorId }
+ * @param {'calendar'|'day'|'search'} view
+ * @param {object} [params]  — e.g. { selectedDay, searchId }
  */
 export function navigate(view, params = {}) {
   resetUI();
@@ -39,6 +43,14 @@ export function renderCurrentView() {
 
   container.innerHTML = View.render(state);
   container.dataset.view = state.view;
+
+  // Reset scroll only when the view (or its target) actually changed
+  const viewKey = `${state.view}|${state.selectedDay}|${state.searchId}`;
+  if (viewKey !== lastViewKey) {
+    container.scrollTop = 0;
+    lastViewKey = viewKey;
+  }
+
   View.bindEvents?.();
   renderBreadcrumb(state);
 }

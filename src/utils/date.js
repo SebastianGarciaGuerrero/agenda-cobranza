@@ -53,6 +53,30 @@ export function isPast(dateStr) {
   return !!dateStr && dateStr < today();
 }
 
+/** YYYY-MM-DD + n days → YYYY-MM-DD */
+export function addDays(dateStr, n) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return toDateStr(new Date(y, m - 1, d + n));
+}
+
+/** Rounds a date forward to the next business day (Sat→Mon, Sun→Mon) */
+export function toBusinessDay(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dow = new Date(y, m - 1, d).getDay();
+  if (dow === 6) return addDays(dateStr, 2); // sábado → lunes
+  if (dow === 0) return addDays(dateStr, 1); // domingo → lunes
+  return dateStr;
+}
+
+/** Adds n business days (Mon–Fri) to a date */
+export function addBusinessDays(dateStr, n) {
+  let result = dateStr;
+  for (let i = 0; i < n; i++) {
+    result = toBusinessDay(addDays(result, 1));
+  }
+  return result;
+}
+
 /** Returns true if a gestión is an overdue unfulfilled promise */
 export function isOverduePromise(gestion) {
   return gestion.tipo === 'promesa' && gestion.pFecha && isPast(gestion.pFecha);
