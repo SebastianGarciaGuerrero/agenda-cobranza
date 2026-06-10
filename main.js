@@ -12,40 +12,58 @@ const DATA_FILE = path.join(DATA_DIR, 'cobranza-data.json');
 let mainWindow;
 
 // ─── Auto-updater ────────────────────────────────────────────────────────────
+// Dos modos según la instalación:
+//  · dev  — el .exe vive en dist/ dentro del repo git → compara contra el
+//           último commit y actualiza con actualizar.bat (git pull + build)
+//  · user — instalación suelta (compañero de trabajo) → compara contra el
+//           último GitHub Release y actualiza con actualizar-app.bat
+//           (descarga el zip publicado, sin necesitar Git ni Node)
 const REPO = 'SebastianGarciaGuerrero/agenda-cobranza';
 
+function githubGet(urlPath, cb) {
+  https.get({
+    hostname: 'api.github.com',
+    path: urlPath,
+    headers: { 'User-Agent': 'AgendaCobranza/1.0' },
+  }, res => {
+    let body = '';
+    res.on('data', chunk => body += chunk);
+    res.on('end', () => {
+      try { cb(JSON.parse(body)); } catch (e) { /* respuesta inesperada */ }
+    });
+  }).on('error', () => { /* sin internet, ignorar silenciosamente */ });
+}
+
 function checkForUpdates() {
-  // Leer el SHA del build actual
+  if (!app.isPackaged) return; // corriendo con npm start/dev, no aplica
+
   let currentSha;
   try {
     const versionFile = path.join(__dirname, 'assets', 'version.json');
     currentSha = JSON.parse(fs.readFileSync(versionFile, 'utf-8')).sha;
   } catch (e) {
-    return; // no hay version.json (modo dev sin build), ignorar
+    return; // sin version.json, no se puede comparar
   }
 
-  // Consultar el último commit en GitHub
-  const options = {
-    hostname: 'api.github.com',
-    path: `/repos/${REPO}/commits?per_page=1`,
-    headers: { 'User-Agent': 'AgendaCobranza/1.0' },
-  };
+  const exeDir   = path.dirname(process.execPath);
+  const repoRoot = path.join(exeDir, '..', '..');
+  const isDevInstall = fs.existsSync(path.join(repoRoot, '.git'));
 
-  https.get(options, res => {
-    let body = '';
-    res.on('data', chunk => body += chunk);
-    res.on('end', () => {
-      try {
-        const [latest] = JSON.parse(body);
-        if (latest?.sha && latest.sha !== currentSha) {
-          showUpdateDialog();
-        }
-      } catch (e) { /* respuesta inesperada, ignorar */ }
+  if (isDevInstall) {
+    githubGet(`/repos/${REPO}/commits?per_page=1`, list => {
+      const latest = Array.isArray(list) ? list[0] : null;
+      if (latest?.sha && latest.sha !== currentSha) showUpdateDialog('dev');
     });
-  }).on('error', () => { /* sin internet, ignorar silenciosamente */ });
+  } else {
+    githubGet(`/repos/${REPO}/releases/latest`, rel => {
+      if (rel?.tag_name && rel.tag_name !== `r-${currentSha.slice(0, 7)}`) {
+        showUpdateDialog('user');
+      }
+    });
+  }
 }
 
-function showUpdateDialog() {
+function showUpdateDialog(mode) {
   dialog.showMessageBox(mainWindow, {
     type: 'info',
     title: 'Actualización disponible',
@@ -56,15 +74,21 @@ function showUpdateDialog() {
     cancelId: 1,
     icon: path.join(__dirname, 'assets', 'icon.ico'),
   }).then(({ response }) => {
-    if (response === 0) {
-      // Ruta al bat: 2 niveles arriba desde la carpeta del .exe
-      const batPath = IS_DEV
-        ? path.join(__dirname, 'actualizar.bat')
-        : path.join(path.dirname(process.execPath), '..', '..', 'actualizar.bat');
+    if (response !== 0) return;
 
-      exec(`start "" "${batPath}"`);
-      app.quit();
+    const exeDir = path.dirname(process.execPath);
+    const batPath = mode === 'dev'
+      ? path.join(exeDir, '..', '..', 'actualizar.bat')
+      : path.join(exeDir, 'actualizar-app.bat');
+
+    if (!fs.existsSync(batPath)) {
+      // Instalación vieja sin actualizador: abrir la página de descargas
+      shell.openExternal(`https://github.com/${REPO}/releases/latest`);
+      return;
     }
+
+    exec(`start "" "${batPath}"`);
+    app.quit();
   });
 }
 
