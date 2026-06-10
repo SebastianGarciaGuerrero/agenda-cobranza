@@ -67,7 +67,9 @@ $body = @{
     name             = "Agenda Cobranza - $fecha ($sha7)"
     body             = $msg
 } | ConvertTo-Json
-$rel = Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$REPO/releases" -Headers $headers -Body $body -ContentType 'application/json'
+# Codificar a UTF-8 explícito: las tildes del mensaje de commit rompen el parseo si no
+$bodyBytes = [Text.Encoding]::UTF8.GetBytes($body)
+$rel = Invoke-RestMethod -Method Post -Uri "https://api.github.com/repos/$REPO/releases" -Headers $headers -Body $bodyBytes -ContentType 'application/json; charset=utf-8'
 
 # ── 6. Subir el zip ──────────────────────────────────────────
 Write-Host "-> Subiendo AgendaCobranza.zip (puede tardar)..." -ForegroundColor Cyan
