@@ -41,6 +41,7 @@ export function renderCurrentView() {
     return;
   }
 
+  container.classList.remove('app-loading'); // quita el centrado del spinner inicial
   container.innerHTML = View.render(state);
   container.dataset.view = state.view;
 

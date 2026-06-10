@@ -135,9 +135,10 @@
    ════════════════════════════════════════════════════════ */
 
 .debtor-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
   gap: var(--s3);
+  width: 100%;
 }
 
 .debtor-item {
@@ -150,6 +151,12 @@
   transition: border-color var(--t), box-shadow var(--t);
   gap: var(--s2);
 }
+
+/* La nota crece para empujar las acciones al borde inferior,
+   así todas las tarjetas de una fila quedan alineadas */
+.debtor-item-nota-row { flex: 1; }
+
+.debtor-item-actions { margin-top: auto; }
 
 .debtor-item:hover {
   border-color: var(--border-med);
@@ -271,6 +278,7 @@
 .debtor-item-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--s2);
   padding-top: var(--s2);
   border-top: 1px solid var(--border);
@@ -379,10 +387,11 @@
    ════════════════════════════════════════════════════════ */
 
 .search-day-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: var(--s2);
   margin-bottom: var(--s5);
+  width: 100%;
 }
 
 .search-day-row {
