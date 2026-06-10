@@ -9,7 +9,7 @@
     "prebuild:win": "node scripts/write-version.js",
     "build:win": "electron-packager . AgendaCobranza --platform=win32 --arch=x64 --out=dist --overwrite --icon=assets/icon.ico",
     "postbuild:win": "node scripts/copy-extras.js",
-    "release": "node scripts/release.js",
+    "release": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/release.ps1",
     "build:mac": "electron-packager . AgendaCobranza --platform=darwin --arch=x64 --out=dist --overwrite"
   },
   "devDependencies": {
