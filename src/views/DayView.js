@@ -6,7 +6,7 @@
 import { navigate } from '../router.js';
 import { getState, setUI, setData } from '../store.js';
 import { saveData } from '../utils/storage.js';
-import { formatLong, formatShort, today, addBusinessDays, toBusinessDay, addDays } from '../utils/date.js';
+import { formatLong, formatShort, today, addBusinessDays, toBusinessDay, addDays, addMonths } from '../utils/date.js';
 import { esc } from '../utils/format.js';
 import { renderAddDebtorForm } from '../components/Forms.js';
 
@@ -80,6 +80,7 @@ export const DayView = {
               <button class="chip btn-quick-date" data-id="${esc(id)}" data-days="1">Mañana</button>
               <button class="chip btn-quick-date" data-id="${esc(id)}" data-days="2">+2 días</button>
               <button class="chip btn-quick-date" data-id="${esc(id)}" data-days="5">+1 semana</button>
+              <button class="chip btn-quick-month" data-id="${esc(id)}">+1 mes</button>
               <input type="date" class="reagendar-date" data-id="${esc(id)}" />
               <button class="chip chip-primary btn-custom-date" data-id="${esc(id)}">Agendar</button>
             </div>
@@ -177,6 +178,15 @@ export const DayView = {
       btn.addEventListener('click', async () => {
         const { selectedDay } = getState();
         const target = addBusinessDays(selectedDay, Number(btn.dataset.days));
+        await scheduleOn(btn.dataset.id, target);
+      });
+    });
+
+    // Chip +1 mes (si cae en finde, pasa al lunes sin avisar)
+    document.querySelectorAll('.btn-quick-month').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const { selectedDay } = getState();
+        const target = toBusinessDay(addMonths(selectedDay, 1));
         await scheduleOn(btn.dataset.id, target);
       });
     });

@@ -68,6 +68,13 @@ export function toBusinessDay(dateStr) {
   return dateStr;
 }
 
+/** YYYY-MM-DD + n months → YYYY-MM-DD (clamps al último día del mes: 31/01 + 1 mes = 28/02) */
+export function addMonths(dateStr, n) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const lastDay = new Date(y, m - 1 + n + 1, 0).getDate();
+  return toDateStr(new Date(y, m - 1 + n, Math.min(d, lastDay)));
+}
+
 /** Adds n business days (Mon–Fri) to a date */
 export function addBusinessDays(dateStr, n) {
   let result = dateStr;
