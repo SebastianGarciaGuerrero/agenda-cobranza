@@ -3,7 +3,7 @@
  */
 
 import { navigate } from '../router.js';
-import { formatShort, today } from '../utils/date.js';
+import { formatShort, today, toBusinessDay } from '../utils/date.js';
 import { esc } from '../utils/format.js';
 
 /** Renders the breadcrumb nav based on current state. */
@@ -34,9 +34,9 @@ export function renderBreadcrumb(state) {
 
 /** Binds the "Hoy" button and global search (called once on startup). */
 export function bindToolbar() {
-  // Botón Hoy → día actual desde cualquier vista
+  // Botón Hoy → día actual desde cualquier vista (fin de semana → lunes)
   document.getElementById('btn-today')?.addEventListener('click', () => {
-    const t = today();
+    const t = toBusinessDay(today());
     navigate('day', {
       selectedDay: t,
       year:  Number(t.slice(0, 4)),

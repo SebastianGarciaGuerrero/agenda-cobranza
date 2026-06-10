@@ -122,7 +122,8 @@ export const DayView = {
     });
 
     document.getElementById('btn-go-today')?.addEventListener('click', () => {
-      const t = today();
+      // Si hoy es fin de semana, ir al lunes (no se trabaja sáb/dom)
+      const t = toBusinessDay(today());
       navigate('day', { selectedDay: t, year: Number(t.slice(0, 4)), month: Number(t.slice(5, 7)) - 1 });
     });
 
@@ -161,6 +162,9 @@ export const DayView = {
     // Agendar el ID en otra fecha (compartido por chips y fecha custom)
     const scheduleOn = async (id, dateStr) => {
       const date = toBusinessDay(dateStr);
+      if (date !== dateStr) {
+        alert(`El ${formatShort(dateStr)} cae en fin de semana.\nSe agendó para el lunes ${formatShort(date)}.`);
+      }
       const data = getState().data;
       if (!data.agenda[date]) data.agenda[date] = [];
       if (!data.agenda[date].includes(id)) data.agenda[date].push(id);
@@ -306,6 +310,12 @@ export const DayView = {
       }
 
       const { selectedDay, data } = getState();
+
+      // No se trabaja sábados ni domingos
+      if (toBusinessDay(selectedDay) !== selectedDay) {
+        alert('Este día cae en fin de semana: no se pueden agendar gestiones.\nUsá el lunes siguiente.');
+        return;
+      }
 
       if (!data.agenda[selectedDay]) data.agenda[selectedDay] = [];
       if (!data.agenda[selectedDay].includes(id)) {
