@@ -14,7 +14,8 @@ Set-Location (Split-Path $PSScriptRoot -Parent)
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 # ── 1. Verificaciones previas ────────────────────────────────
-if (git status --porcelain) {
+# Solo bloquea por cambios en archivos versionados (ignora archivos sueltos no rastreados)
+if (git status --porcelain --untracked-files=no) {
     Write-Host "X Hay cambios sin commitear. Commitea y pushea antes de publicar." -ForegroundColor Red
     exit 1
 }
