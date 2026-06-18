@@ -10,10 +10,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   writeData: (data) => ipcRenderer.invoke('storage:write', data),
 
   // Export
-  exportCSV: (csv) => ipcRenderer.invoke('export:csv', csv),
+  exportXLSX: (payload) => ipcRenderer.invoke('export:xlsx', payload),
 
   // Menu events (main → renderer)
-  onExportCSV:    (fn) => ipcRenderer.on('menu:export-csv',    fn),
+  onExportXLSX:   (fn) => ipcRenderer.on('menu:export-xlsx',   fn),
   onDataImported: (fn) => ipcRenderer.on('menu:data-imported', fn),
 
   // Remove listeners

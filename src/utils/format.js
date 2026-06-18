@@ -1,5 +1,5 @@
 /**
- * format.js — Formatting, IDs, escaping, CSV export.
+ * format.js — Formatting, IDs, escaping, Excel export rows.
  */
 
 /** Chilean peso formatting */
@@ -27,32 +27,41 @@ export function esc(str) {
     .replace(/'/g, '&#39;');
 }
 
-/**
- * Converts the debtors object to a CSV string.
- * BOM (\uFEFF) should be prepended when writing to disk for Excel compatibility.
- */
-export function toCSV(debtors) {
-  const headers = [
-    'ID', 'Nombre', 'RUT',
-    'Deuda Total', 'Saldo Pendiente', 'Estado',
-    'Última Gestión', 'Fecha Última Gestión', 'Nota Última Gestión',
-  ];
+/** YYYY-MM-DD → DD/MM/YYYY (para la columna Fecha del Excel) */
+function fechaDMY(str) {
+  const [y, m, d] = String(str).split('-');
+  return `${d}/${m}/${y}`;
+}
 
-  const rows = Object.values(debtors).map(d => {
-    const gestiones = d.gestiones || [];
-    const last = gestiones.length ? gestiones[gestiones.length - 1] : null;
-    return [
-      d.id       || '',
-      d.nombre   || '',
-      d.rut      || '',
-      d.deudaTotal != null ? d.deudaTotal : '',
-      d.saldo     != null ? d.saldo     : '',
-      d.estado   || '',
-      last ? last.tipo  : '',
-      last ? last.fecha : '',
-      last ? (last.nota || '') : '',
-    ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
+/**
+ * Arma la tabla de exportación a Excel a partir de la agenda.
+ * Una fila por cada (día, deudor agendado), ordenada por fecha y luego por ID.
+ * Columnas: Fecha · ID · Nombre · Comentario del día.
+ *
+ * @param {{agenda: object, debtors: object, notas: object}} data
+ * @returns {{headers: string[], rows: string[][], sheetName: string}}
+ */
+export function buildAgendaExport(data) {
+  const { agenda = {}, debtors = {}, notas = {} } = data;
+
+  const rows = [];
+  for (const day of Object.keys(agenda)) {
+    for (const id of agenda[day] || []) {
+      const deb  = debtors[id] || {};
+      const nota = notas[day]?.[id] || '';
+      rows.push({ day, id, nombre: deb.nombre || '', nota });
+    }
+  }
+
+  // Orden: por fecha ascendente, y dentro de cada fecha por ID
+  rows.sort((a, b) => {
+    if (a.day !== b.day) return a.day < b.day ? -1 : 1;
+    return String(a.id).localeCompare(String(b.id), 'es', { numeric: true });
   });
 
-  return [headers.join(','), ...rows].join('\r\n');
+  return {
+    headers: ['Fecha', 'ID', 'Nombre', 'Comentario del día'],
+    rows: rows.map(r => [fechaDMY(r.day), r.id, r.nombre, r.nota]),
+    sheetName: 'Agenda',
+  };
 }

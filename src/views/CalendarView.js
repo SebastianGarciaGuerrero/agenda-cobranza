@@ -6,8 +6,8 @@ import { navigate } from '../router.js';
 import { setState, getState } from '../store.js';
 import { MESES, DIAS_SEMANA } from '../utils/constants.js';
 import { daysInMonth, firstDayOfMonth, buildKey, today } from '../utils/date.js';
-import { toCSV } from '../utils/format.js';
-import { exportCSV } from '../utils/storage.js';
+import { buildAgendaExport } from '../utils/format.js';
+import { exportXLSX } from '../utils/storage.js';
 import { lastTipo } from '../components/Badge.js';
 
 // ── Pill CSS class based on debtor state ─────────────────────────────────────
@@ -82,7 +82,7 @@ export const CalendarView = {
           ${!isCurrentMonth ? `<button class="btn btn-secondary btn-sm" id="btn-cal-today">Mes actual</button>` : ''}
         </div>
         <span class="cal-month-label">${MESES[month]} ${year}</span>
-        <button class="btn btn-secondary btn-sm" id="btn-export-csv">Exportar CSV</button>
+        <button class="btn btn-secondary btn-sm" id="btn-export-csv">Exportar a Excel</button>
       </div>
 
       <div class="cal-grid">
@@ -120,8 +120,7 @@ export const CalendarView = {
     });
 
     document.getElementById('btn-export-csv')?.addEventListener('click', async () => {
-      const csv = toCSV(getState().data.debtors);
-      await exportCSV(csv);
+      await exportXLSX(buildAgendaExport(getState().data));
     });
   },
 };

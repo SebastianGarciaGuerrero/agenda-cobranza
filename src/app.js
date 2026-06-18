@@ -9,8 +9,8 @@ import { loadData, saveData } from './utils/storage.js';
 import { setData, subscribe, getState } from './store.js';
 import { renderCurrentView, navigate } from './router.js';
 import { bindToolbar } from './components/Toolbar.js';
-import { toCSV } from './utils/format.js';
-import { exportCSV } from './utils/storage.js';
+import { buildAgendaExport } from './utils/format.js';
+import { exportXLSX } from './utils/storage.js';
 
 // ── Boot ─────────────────────────────────────────────────────────────────────
 async function boot() {
@@ -55,10 +55,9 @@ function bindGlobalShortcuts() {
 function bindMenuEvents() {
   if (!window.electronAPI) return;
 
-  // File → Export CSV
-  window.electronAPI.onExportCSV(async () => {
-    const csv = toCSV(getState().data.debtors);
-    await exportCSV(csv);
+  // File → Export Excel
+  window.electronAPI.onExportXLSX(async () => {
+    await exportXLSX(buildAgendaExport(getState().data));
   });
 
   // File → Import backup (JSON imported in main process; just reload data)

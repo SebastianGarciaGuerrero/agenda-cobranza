@@ -3,6 +3,7 @@ const path = require('path');
 const fs   = require('fs');
 const https = require('https');
 const { exec } = require('child_process');
+const { buildXLSX } = require('./xlsx-writer.js');
 
 // ─── Constants ─────────────────────────────────────────────────────────────
 const IS_DEV   = process.argv.includes('--dev');
@@ -131,7 +132,7 @@ function buildAppMenu() {
     {
       label: 'Archivo',
       submenu: [
-        { label: 'Exportar a CSV…', click: () => handleExportCSV() },
+        { label: 'Exportar a Excel…', click: () => handleExportXLSX() },
         { label: 'Exportar backup (JSON)…', click: () => handleExportJSON() },
         { label: 'Importar backup (JSON)…', click: () => handleImportJSON() },
         { type: 'separator' },
@@ -190,22 +191,28 @@ ipcMain.handle('storage:write', (_, data) => {
 });
 
 // ─── IPC — Export / Import ───────────────────────────────────────────────────
-ipcMain.handle('export:csv', async (_, csvContent) => {
+ipcMain.handle('export:xlsx', async (_, payload) => {
+  const { headers, rows, sheetName } = payload || {};
   const { filePath, canceled } = await dialog.showSaveDialog(mainWindow, {
-    title: 'Exportar cartera a CSV',
-    defaultPath: `cobranza-${dateStamp()}.csv`,
-    filters: [{ name: 'CSV', extensions: ['csv'] }],
+    title: 'Exportar agenda a Excel',
+    defaultPath: `agenda-cobranza-${dateStamp()}.xlsx`,
+    filters: [{ name: 'Excel', extensions: ['xlsx'] }],
   });
   if (canceled || !filePath) return false;
   try {
-    fs.writeFileSync(filePath, '\uFEFF' + csvContent, 'utf-8'); // BOM for Excel
-    shell.openPath(path.dirname(filePath));
+    const buf = buildXLSX(headers || [], rows || [], sheetName || 'Agenda');
+    fs.writeFileSync(filePath, buf);
+    shell.showItemInFolder(filePath);
     return true;
-  } catch (err) { return false; }
+  } catch (err) {
+    console.error('[export:xlsx]', err);
+    dialog.showErrorBox('Error', `No se pudo exportar: ${err.message}`);
+    return false;
+  }
 });
 
-async function handleExportCSV() {
-  mainWindow.webContents.send('menu:export-csv');
+async function handleExportXLSX() {
+  mainWindow.webContents.send('menu:export-xlsx');
 }
 
 async function handleExportJSON() {
