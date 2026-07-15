@@ -92,17 +92,18 @@ export const DayView = {
     return `
       <h2 class="sr-only">Gestiones del día ${selectedDay}</h2>
 
-      <div class="view-header">
-        <button class="btn btn-secondary btn-sm" id="btn-back-calendar" title="Volver al calendario (Esc)">← Calendario</button>
+      <div class="date-nav-top">
+        <button class="btn btn-secondary btn-sm" id="btn-back-calendar" title="Volver al calendario (Esc)">← Volver</button>
         ${!isToday ? `<button class="btn btn-secondary btn-sm" id="btn-go-today" title="Ir al día de hoy">Hoy</button>` : ''}
-        <div style="flex:1">
-          <div class="view-title">${formatLong(selectedDay)}${isToday ? ' <span class="today-tag">HOY</span>' : ''}</div>
-          <div class="view-subtitle">${ids.length} deudor${ids.length !== 1 ? 'es' : ''} agendado${ids.length !== 1 ? 's' : ''}</div>
+      </div>
+
+      <div class="date-nav">
+        <button class="nav-arrow" id="btn-prev-day" title="Día hábil anterior">‹</button>
+        <div class="date-nav-center">
+          <div class="date-nav-title">${formatLong(selectedDay)}${isToday ? ' <span class="today-tag">HOY</span>' : ''}</div>
+          <div class="date-nav-sub">${ids.length} deudor${ids.length !== 1 ? 'es' : ''} agendado${ids.length !== 1 ? 's' : ''}</div>
         </div>
-        <div class="day-nav-btns">
-          <button class="nav-btn" id="btn-prev-day" title="Día hábil anterior">←</button>
-          <button class="nav-btn" id="btn-next-day" title="Día hábil siguiente">→</button>
-        </div>
+        <button class="nav-arrow" id="btn-next-day" title="Día hábil siguiente">›</button>
       </div>
 
       ${debtorList}
@@ -359,16 +360,18 @@ export const DayView = {
 
     document.getElementById('btn-confirm-add-debtor')?.addEventListener('click', confirmAdd);
 
-    // Enter en los campos del form → agregar directo
+    // Enter agrega · Esc cierra el formulario (sin navegar)
     ['f-new-id', 'f-new-nombre'].forEach(fid => {
       document.getElementById(fid)?.addEventListener('keydown', e => {
         e.stopPropagation(); // que Esc no navegue mientras se escribe
-        if (e.key === 'Enter') { e.preventDefault(); confirmAdd(); }
+        if (e.key === 'Enter')  { e.preventDefault(); confirmAdd(); }
+        if (e.key === 'Escape') { e.preventDefault(); setUI({ showAddDebtor: false }); }
       });
     });
     document.getElementById('f-new-nota')?.addEventListener('keydown', e => {
       e.stopPropagation();
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); confirmAdd(); }
+      if (e.key === 'Escape') { e.preventDefault(); setUI({ showAddDebtor: false }); }
     });
   },
 };

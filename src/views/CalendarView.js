@@ -75,14 +75,17 @@ export const CalendarView = {
     return `
       <h2 class="sr-only">Calendario de gestiones</h2>
 
-      <div class="cal-nav">
-        <div class="cal-nav-btns">
-          <button class="nav-btn" id="btn-prev-month" title="Mes anterior">←</button>
-          <button class="nav-btn" id="btn-next-month" title="Mes siguiente">→</button>
-          ${!isCurrentMonth ? `<button class="btn btn-secondary btn-sm" id="btn-cal-today">Mes actual</button>` : ''}
-        </div>
-        <span class="cal-month-label">${MESES[month]} ${year}</span>
+      <div class="date-nav-top">
+        ${!isCurrentMonth ? `<button class="btn btn-secondary btn-sm" id="btn-cal-today">Mes actual</button>` : '<span></span>'}
         <button class="btn btn-secondary btn-sm" id="btn-export-csv">Exportar a Excel</button>
+      </div>
+
+      <div class="date-nav">
+        <button class="nav-arrow" id="btn-prev-month" title="Mes anterior">‹</button>
+        <div class="date-nav-center">
+          <div class="cal-month-label">${MESES[month]} ${year}</div>
+        </div>
+        <button class="nav-arrow" id="btn-next-month" title="Mes siguiente">›</button>
       </div>
 
       <div class="cal-grid">
