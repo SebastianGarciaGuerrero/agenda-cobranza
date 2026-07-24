@@ -167,9 +167,19 @@ export const DayView = {
       if (date !== dateStr) {
         alert(`El ${formatShort(dateStr)} cae en fin de semana.\nSe agendó para el lunes ${formatShort(date)}.`);
       }
-      const data = getState().data;
+      const { selectedDay, data } = getState();
       if (!data.agenda[date]) data.agenda[date] = [];
       if (!data.agenda[date].includes(id)) data.agenda[date].push(id);
+
+      // Copiar la nota del día actual como predeterminada para el nuevo día
+      // (si el destino aún no tiene una). Después se puede editar en ese día.
+      const notaActual = data.notas?.[selectedDay]?.[id];
+      if (notaActual) {
+        if (!data.notas)       data.notas = {};
+        if (!data.notas[date]) data.notas[date] = {};
+        if (!data.notas[date][id]) data.notas[date][id] = notaActual;
+      }
+
       setData({ ...data });
       await saveData(getState().data);
     };
