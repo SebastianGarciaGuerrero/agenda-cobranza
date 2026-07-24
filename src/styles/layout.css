@@ -168,15 +168,12 @@
 }
 
 .date-nav {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
   align-items: center;
+  justify-content: center;
+  gap: var(--s4);
   margin-bottom: var(--s5);
-  gap: var(--s3);
 }
-
-.date-nav .nav-arrow:first-child { justify-self: start; }
-.date-nav .nav-arrow:last-child  { justify-self: end; }
 
 .date-nav-center {
   text-align: center;
