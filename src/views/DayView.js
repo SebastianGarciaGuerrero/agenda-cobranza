@@ -9,6 +9,13 @@ import { saveData } from '../utils/storage.js';
 import { formatLong, formatShort, today, addBusinessDays, toBusinessDay, addDays, addMonths } from '../utils/date.js';
 import { esc } from '../utils/format.js';
 import { renderAddDebtorForm } from '../components/Forms.js';
+import { showToast } from '../components/Toast.js';
+
+// Restaura un snapshot completo de los datos (para Deshacer)
+async function restoreSnapshot(snapshot) {
+  setData(snapshot);
+  await saveData(getState().data);
+}
 
 // ── Badge del deudor ──────────────────────────────────────────────────────────
 function debtorBadge(deb) {
@@ -211,19 +218,20 @@ export const DayView = {
       });
     });
 
-    // ── Pagado: marcar y quitar de los demás días ────────────────────────────
+    // ── Pagado: marcar y quitar de los demás días — con Deshacer ─────────────
     document.querySelectorAll('.btn-pagado').forEach(btn => {
       btn.addEventListener('click', async () => {
         const id = btn.dataset.id;
         const { selectedDay, data } = getState();
+        const snapshot = JSON.parse(JSON.stringify(data));
         const deb = data.debtors[id] || (data.debtors[id] = { id, nombre: '', gestiones: [] });
 
+        let removidos = 0;
         if (deb.pagado) {
           // Desmarcar (no restaura los días eliminados)
           deb.pagado = false;
           delete deb.pagadoFecha;
         } else {
-          if (!confirm(`¿Marcar ID ${id} como pagado?\nSe quitará de todos los demás días de la agenda.`)) return;
           deb.pagado = true;
           deb.pagadoFecha = today();
           // Quitar de todos los días excepto el actual (notas incluidas)
@@ -233,21 +241,33 @@ export const DayView = {
               data.agenda[day] = data.agenda[day].filter(x => x !== id);
               if (!data.agenda[day].length) delete data.agenda[day];
               if (data.notas?.[day]?.[id]) delete data.notas[day][id];
+              removidos++;
             }
           }
         }
 
         setData({ ...data });
         await saveData(getState().data);
+
+        if (deb.pagado) {
+          const extra = removidos ? ` y se quitó de ${removidos} día${removidos > 1 ? 's' : ''} más` : '';
+          showToast(`ID ${id} marcado como pagado${extra}`, {
+            actionLabel: 'Deshacer',
+            onAction: () => restoreSnapshot(snapshot),
+          });
+        }
       });
     });
 
-    // ── Quitar deudor del día (y su nota) ────────────────────────────────────
+    // ── Quitar deudor del día (y su nota) — con Deshacer ─────────────────────
     document.querySelectorAll('.btn-rm-debtor').forEach(btn => {
       btn.addEventListener('click', async () => {
         const id   = btn.dataset.id;
         const day  = getState().selectedDay;
         const data = getState().data;
+
+        // Snapshot para poder deshacer
+        const snapshot = JSON.parse(JSON.stringify(data));
 
         data.agenda[day] = (data.agenda[day] || []).filter(x => x !== id);
         if (!data.agenda[day].length) delete data.agenda[day];
@@ -255,6 +275,11 @@ export const DayView = {
 
         setData({ ...data });
         await saveData(getState().data);
+
+        showToast(`Se quitó el ID ${id} de este día`, {
+          actionLabel: 'Deshacer',
+          onAction: () => restoreSnapshot(snapshot),
+        });
       });
     });
 

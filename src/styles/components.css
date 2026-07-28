@@ -3,6 +3,67 @@
    ───────────────────────────────────────────────────────────── */
 
 /* ════════════════════════════════════════════════════════
+   TOAST (aviso flotante con acción)
+   ════════════════════════════════════════════════════════ */
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  background: var(--text-primary);
+  color: #fff;
+  padding: 10px 12px 10px 18px;
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--fs-sm);
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity var(--t), transform var(--t);
+  max-width: min(90vw, 460px);
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast-msg { line-height: 1.4; }
+
+.toast-action {
+  font-family: var(--font);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--accent-light);
+  background: transparent;
+  border: none;
+  border-radius: var(--r-md);
+  padding: 4px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--t);
+}
+
+.toast-action:hover { background: rgba(255, 255, 255, 0.14); }
+
+.toast-close {
+  font-size: 18px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.6);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+  transition: color var(--t), background var(--t);
+}
+
+.toast-close:hover { color: #fff; background: rgba(255, 255, 255, 0.14); }
+
+/* ════════════════════════════════════════════════════════
    BUTTONS
    ════════════════════════════════════════════════════════ */
 
